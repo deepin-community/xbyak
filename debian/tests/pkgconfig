@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -eu
+
+cd "$AUTOPKGTEST_TMP"
+
+c++ -Wall -Wextra -Wpedantic -Werror -o test0 "$OLDPWD/sample/test0.cpp" $(pkg-config --cflags --libs xbyak)
+./test0

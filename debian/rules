@@ -1,4 +1,24 @@
 #!/usr/bin/make -f
 
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all qa=+all
+# -Werror=array-bounds: added by qa=+bug, triggers some false positives
+export DEB_CXXFLAGS_MAINT_STRIP = -Werror=array-bounds
+
 %:
-	dh $@
+	dh $@ --buildsystem=meson
+
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+
+execute_after_dh_auto_build-arch:
+	make -C sample BIT=$(DEB_HOST_ARCH_BITS)
+	make -C test BIT=$(DEB_HOST_ARCH_BITS)
+
+execute_after_dh_auto_test:
+	make -C test BIT=$(DEB_HOST_ARCH_BITS) test
+
+execute_after_dh_auto_clean:
+	make -C sample BIT=$(DEB_HOST_ARCH_BITS) clean
+	make -C test BIT=$(DEB_HOST_ARCH_BITS) clean
+	$(RM) gen/gen_avx512 gen/gen_code gen/sortline
+
+endif
